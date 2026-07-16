@@ -45,7 +45,8 @@ export async function createGoal(): Promise<Goal | null> {
 
 export async function updateGoal(goalId: string, updatedGoal: Goal): Promise<boolean> {
   try {
-    await axios.put(`${API_ROOT}/api/Goal/${goalId}`, updatedGoal)
+    const response = await axios.put(`${API_ROOT}/api/Goal/${goalId}`, updatedGoal);
+    console.log("Goal updated to: " + JSON.stringify(updatedGoal) + " with response: " + JSON.stringify(response))
     return true
   } catch (error: any) {
     return false

@@ -5,7 +5,7 @@ import { MaterialUiPickersDate } from '@material-ui/pickers/typings/date'
 import 'date-fns'
 import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { updateGoal as updateGoalApi } from '../../../api/lib'
+import { updateGoal, updateGoal as updateGoalApi } from '../../../api/lib'
 import { Goal } from '../../../api/types'
 import { selectGoalsMap, updateGoal as updateGoalRedux } from '../../../store/goalsSlice'
 import { useAppDispatch, useAppSelector } from '../../../store/hooks'
@@ -120,8 +120,7 @@ export function GoalManager(props: Props) {
       }
 
       dispatch(updateGoalRedux(updatedGoal))
-
-      // TODO(TASK-3) Update database
+      updateGoal(goal.id, updatedGoal)
     }
 
   return (
