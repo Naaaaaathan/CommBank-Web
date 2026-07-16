@@ -5,12 +5,16 @@ import GoalCard from './GoalCard'
 
 type Props = { ids: string[] | null }
 
+const MAX_GOALS_TO_SHOW = 5
+
 export default function GoalsContent(props: Props) {
   if (!props.ids) return null
 
+  const visibleIds = props.ids.slice(0, MAX_GOALS_TO_SHOW)
+
   return (
     <Container>
-      {props.ids.map((id) => (
+      {visibleIds.map((id) => (
         <GoalCard key={id} id={id} />
       ))}
     </Container>
