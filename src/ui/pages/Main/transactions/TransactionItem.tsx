@@ -7,49 +7,64 @@ import Chip from '../../../components/Chip'
 
 type Props = { transaction: Transaction }
 
-export function TransactionItem(props: Props) {
+export const TransactionItem = React.memo(function TransactionItem(props: Props) {
   const [tags, setTags] = useState<Tag[] | null>(null)
 
   useEffect(() => {
-    async function fetch(tagId: string): Promise<Tag> {
-      const response = await axios.get(`${API_ROOT}/api/Tag/${tagId}`)
-      return response.data
-    }
+    let isMounted = true
 
     async function fetchAll() {
-      const tags: Tag[] = []
-      for (const tagId of props.transaction.tagIds) {
-        const tag = await fetch(tagId)
-        tags.push(tag)
+      if (!props.transaction.tagIds.length) {
+        if (isMounted) {
+          setTags([])
+        }
+        return
       }
 
-      setTags(tags)
+      try {
+        const fetchedTags = await Promise.all(
+          props.transaction.tagIds.map(async (tagId) => {
+            const response = await axios.get(`${API_ROOT}/api/Tag/${tagId}`)
+            return response.data as Tag
+          }),
+        )
+
+        if (isMounted) {
+          setTags(fetchedTags)
+        }
+      } catch (error) {
+        if (isMounted) {
+          setTags([])
+        }
+      }
     }
 
     fetchAll()
-  })
+
+    return () => {
+      isMounted = false
+    }
+  }, [props.transaction.tagIds])
 
   return (
     <Container>
       <Content>
-        <h6 className="description">{props.transaction.description}</h6>
+        <Description>{props.transaction.description}</Description>
 
-        {tags ? tags.map((tag) => <Chip key={tag.id} label={tag.name} />) : null}
+        <Tags>{tags ? tags.map((tag) => <Chip key={tag.id} label={tag.name} />) : null}</Tags>
 
-        <h6 className="datetime">{`${new Date(
-          props.transaction.dateTime,
-        ).toLocaleDateString()}`}</h6>
+        <DateText>{`${new Date(props.transaction.dateTime).toLocaleDateString()}`}</DateText>
 
-        <h6 className="price">{`${
+        <Price>{`${
           props.transaction.transactionType === 'Credit'
             ? `$${props.transaction.amount}`
             : `-$${props.transaction.amount}`
-        }`}</h6>
+        }`}</Price>
       </Content>
       <Divider />
     </Container>
   )
-}
+})
 
 const Container = styled.div`
   display: flex;
@@ -67,13 +82,31 @@ const Content = styled.div`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 0;
+`
 
-  h6 {
-    font-size: 1.2rem;
-  }
+const Description = styled.h6`
+  font-size: 1.2rem;
+  margin: 0;
+  flex: 1;
+`
 
-  h6.datetime {
-    color: rgba(174, 174, 174, 1);
-    font-weight: bold;
-  }
+const Tags = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  flex: 1;
+`
+
+const DateText = styled.h6`
+  font-size: 1.2rem;
+  color: rgba(174, 174, 174, 1);
+  font-weight: bold;
+  margin: 0;
+`
+
+const Price = styled.h6`
+  font-size: 1.2rem;
+  margin: 0;
 `
